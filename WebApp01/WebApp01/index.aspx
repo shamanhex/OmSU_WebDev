@@ -20,63 +20,75 @@
             timestamp.innerHTML = t.getDate() + '.' + t.getMonth() + '.' + t.getFullYear() + '<br />' + hours + ':' + min;
         };
 
+        initChart = function () {
+            var MONTHS = ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
+            var config = {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'],
+                    datasets: [{
+                        label: 'CPU (%)',
+                        backgroundColor: 'rgb(54, 162, 235)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        data: [],
+                        fill: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Загрузка CPU'
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Время'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: '%'
+                            }
+                        }]
+                    }
+                }
+            };
+            config.data.datasets[0].data = [];
+            window.myConfig = config;
+
+            var ctx = document.getElementById('cpu_chart').getContext('2d');
+            window.myLine = new Chart(ctx, config);
+            updateChart();
+        }
+
+        updateChart = function () {
+            $.get("./api/MonitoringData.ashx?varname=CPU", function (monData) {
+                window.myLine.data.datasets[0].data = monData;
+                window.myLine.update();
+            }, "json");
+        }
+
         window.onload = function () {
             timeUpdate();
 
-            $.get("./api/MonitoringData.ashx?varname=CPU", function (monData) {
-                var MONTHS = ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
-                var config = {
-                    type: 'line',
-                    data: {
-                        labels: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'],
-                        datasets: [{
-                            label: 'CPU (%)',
-                            backgroundColor: 'rgb(54, 162, 235)',
-                            borderColor: 'rgb(54, 162, 235)',
-                            data: [],
-                            fill: false,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        title: {
-                            display: true,
-                            text: 'Загрузка CPU'
-                        },
-                        tooltips: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        hover: {
-                            mode: 'nearest',
-                            intersect: true
-                        },
-                        scales: {
-                            xAxes: [{
-                                display: true,
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Время'
-                                }
-                            }],
-                            yAxes: [{
-                                display: true,
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: '%'
-                                }
-                            }]
-                        }
-                    }
-                };
-                config.data.datasets[0].data = monData;
-                var ctx = document.getElementById('cpu_chart').getContext('2d');
-                window.myLine = new Chart(ctx, config);
-            }, "json");
-            
+            initChart();            
         };
 
         setInterval(timeUpdate, 10000);
+        setInterval(updateChart, 10000);
     </script>
 </head>
 <body>
